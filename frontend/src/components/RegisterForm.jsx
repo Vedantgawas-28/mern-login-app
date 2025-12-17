@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API = process.env.REACT_APP_API_URL;
+
 function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -11,7 +13,7 @@ function RegisterForm() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

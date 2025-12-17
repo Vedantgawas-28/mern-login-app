@@ -1,59 +1,61 @@
-import { toast } from "react-toastify";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+const API = process.env.REACT_APP_API_URL;
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false); // ✅ loading state
-  const [error, setError] = useState(""); // ✅ error message
+  const [loading, setLoading] = useState(false);
 
   const typingTimeout = useRef(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setError("");
-  setLoading(true);
-  document.body.classList.remove("happy", "sad");
+    if (loading) return;
 
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    setLoading(true);
+    document.body.classList.remove("happy", "sad");
 
-    const data = await res.json();
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+        }),
+      });
 
-    if (!res.ok) {
-      document.body.classList.add("sad");
-      toast.error(data.error || "Login failed ❌");
+      const data = await res.json();
+
+      if (!res.ok) {
+        document.body.classList.add("sad");
+        toast.error(data.error || "Invalid email or password ❌");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Save JWT
+      localStorage.setItem("token", data.token);
+
+      document.body.classList.add("happy");
+      toast.success("Login successful 🎉");
+
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error("Server not responding. Try again later ❌");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    localStorage.setItem("token", data.token);
-    document.body.classList.add("happy");
-
-    toast.success("Login successful 🎉");
-    setLoading(false);
-
-    navigate("/dashboard");
-  } catch (err) {
-    toast.error("Server error. Try again ❌");
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <h2>Welcome back</h2>
-
-      {/* ❌ Error Message */}
-      {error && <p className="error-text">{error}</p>}
 
       <input
         type="email"
@@ -95,16 +97,17 @@ function LoginForm() {
       </div>
 
       <button
-  type="button"
-  className="google-btn"
-  onClick={() => toast.info("Google login coming soon 🚀")}
->
-  <img
-    src="https://developers.google.com/identity/images/g-logo.png"
-    alt="Google"
-  />
-  Continue with Google
-</button>
+        type="button"
+        className="google-btn"
+        onClick={() => toast.info("Google login coming soon 🚀")}
+        disabled={loading}
+      >
+        <img
+          src="https://developers.google.com/identity/images/g-logo.png"
+          alt="Google"
+        />
+        Continue with Google
+      </button>
 
       <p className="hint">
         Don’t have an account?{" "}
