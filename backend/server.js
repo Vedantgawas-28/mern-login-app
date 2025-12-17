@@ -9,7 +9,18 @@ const cors = require("cors");
 const app = express();
 
 // Middlewares
-app.use(cors());
+const cors = require("cors");
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://mern-login-app-zeta.vercel.app"
+    ],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 
